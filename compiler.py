@@ -1,4 +1,6 @@
 from tm import TM, Transition, RIGHT, LEFT
+from subroutine import SuperTransition
+from utils import get_state_id_map
 
 def n_to_2_symbols(tm):
     """
@@ -115,5 +117,110 @@ def four_to_two_symbols(tm):
                     '1': Transition(transition.state_to, '1', 'L'),
                 }
 
-        return TM(transitions=new_transitions, start_state=tm.start_state)
-                
+        # TODO: should we convert tape contents before constructing the new TM?
+        return TM(transitions=new_transitions, start_state=tm.state, tape=tm.tape, head_idx=tm.head_idx, empty_symbol=tm.empty_symbol)
+
+def quintuple_to_quadruple(tm):
+    """
+    Convert a Turing Machine that uses quintuple transitions to one that uses quadruple transitions.
+    Each transition in the resulting machine will either move or will write a symbol but not both.
+    Args:
+        tm (TM): The original Turing Machine instance
+    
+    Returns:
+        TM: A new Turing Machine instance with all transitions using quadruple transitions
+    """
+    new_transitions = {}
+    for state_from, transitions in tm.transitions.items():
+        new_transitions[state_from] = {}
+        for symbol, transition in transitions.items():
+            if transition.direction is None or transition.symbol_to_write is None:
+                # if either the direction or symbol to write is None, we can just copy the transition
+                new_transitions[state_from][symbol] = transition
+                continue
+            elif transition.symbol_to_write == symbol:
+                # if the symbol to write is the same as the symbol we are reading, we can just use a move transition
+                new_transitions[state_from][symbol] = Transition(transition.state_to, None, transition.direction)
+                continue
+
+            # otherwise, we need to create two transitions
+            if state_from + '_w' not in new_transitions:
+                new_transitions[state_from + '_w'] = {}
+            new_transitions[state_from][symbol] = Transition(state_from + '_w', transition.symbol_to_write, None)
+            new_transitions[state_from + '_w'][transition.symbol_to_write] = Transition(transition.state_to, None, transition.direction)
+
+    return TM(transitions=new_transitions, start_state=tm.state, tape=tm.tape, head_idx=tm.head_idx, empty_symbol=tm.empty_symbol)
+              
+
+def standardize_simulation_target(tm):
+    """
+    Assumptions for UTM simulation target:
+    - Quadruple transitions
+    - '0' is halt state
+    - '1' is the start state
+    - if there are n states, then they are named '0', '1', '2', ..., 'n-1'
+    - every transition is defined for '0' and '1' except for the halt state, which has no transitons
+    - Only uses right half of the tape
+
+    It is up to the user to ensure the TM only uses the right half of the tape, but this compilation step handles the rest.
+    """
+    tm = compile_super_transitions(tm)
+    tm = remove_null_transitions(tm)
+    tm = quintuple_to_quadruple(tm)
+    new_transitions = {
+        '0': {},  # halt state
+    }
+    state_id_map = get_state_id_map(tm)
+    for state_from, transitions in tm.transitions.items():
+        state_id = state_id_map[state_from]
+        
+        new_transitions[state_id] = {}
+        for symbol in ('0', '1'):
+            transition = transitions.get(symbol)
+            if transition is None:
+                transition = Transition('0', symbol, None)
+            else:
+                transition.state_to = state_id_map[transition.state_to]
+
+            new_transitions[state_id][symbol] = transition
+    return TM(transitions=new_transitions, start_state='1', tape=tm.tape, head_idx=tm.head_idx, empty_symbol=tm.empty_symbol)
+
+def compile_super_transitions(tm):
+    """
+    Convert a Turing Machine that uses super transitions to one that uses normal transitions.
+    """
+    new_transitions = {}
+    for state_from, transitions in tm.transitions.items():
+        new_transitions[state_from] = {}
+        for symbol, transition in transitions.items():
+            if isinstance(transition, SuperTransition):
+                # if the transition is a super transition, we need to assemble it
+                sub_transitions, first_state = transition.assemble()
+                new_transitions.update(sub_transitions)
+                new_transitions[state_from][symbol] = Transition(first_state, None, None)
+            else:
+                new_transitions[state_from][symbol] = transition
+
+    return TM(transitions=new_transitions, start_state=tm.state, tape=tm.tape, head_idx=tm.head_idx, empty_symbol=tm.empty_symbol)
+
+def remove_null_transitions(tm):
+    """
+    Removes transitions that do not write and do not move (by skipping the unnecessary intermediate state)
+    """
+    new_transitions = {}
+    for state_from, transitions in tm.transitions.items():
+        new_transitions[state_from] = {}
+        for symbol, transition in transitions.items():
+            if transition.symbol_to_write is None and transition.direction is None:
+                # if the transition does not write or move, we can skip it
+                next_state = transitions[transition.state_to][symbol]
+                while next_state is not None and next_state.symbol_to_write is None and next_state.direction is None:
+                    next_state = transitions[next_state.state_to].get(symbol)
+                if next_state is not None:
+                    # remove this transition entirely if it leads to halt without doing anything
+                    continue
+                new_transitions[state_from][symbol] = Transition(transition.state_to, None, None)
+            else:
+                new_transitions[state_from][symbol] = transition
+
+    return TM(transitions=new_transitions, start_state=tm.state, tape=tm.tape, head_idx=tm.head_idx, empty_symbol=tm.empty_symbol)

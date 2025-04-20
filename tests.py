@@ -1,6 +1,7 @@
 from tm import TM, Transition, HaltException
 from parser import load_from_xml, save_to_xml
-from subroutine import two_to_four_symbol_tape_expansion, four_to_two_symbol_tape_decode
+from subroutine import *
+from compiler import *
 
 def test_tm_methods():
     # Test the TM class with a simple transition function
@@ -70,7 +71,7 @@ def test_save_to_xml():
 
 
 def test_two_to_four_symbol_expansion():
-    transitions, entry_state = two_to_four_symbol_tape_expansion('0', '2to4_')
+    transitions, entry_state = TwoToFourSymbolExpansion('0', '2to4_').assemble()
     transitions['0'] = {}
     tm = TM(transitions, entry_state, tape=['1', '0', '1'], head_idx=0)
     tm.draw()
@@ -79,13 +80,52 @@ def test_two_to_four_symbol_expansion():
     assert '110111' in ''.join(tm.tape)
 
 def test_four_to_two_symbol_expansion():
-    transitions, entry_state = four_to_two_symbol_tape_decode('0', '4to2_')
+    transitions, entry_state = FourToTwoSymbolDecode('0', '4to2_').assemble()
     transitions['0'] = {}
     tm = TM(transitions, entry_state, tape=['1', '1', '0', '1', '1', '1'], head_idx=0)
     tm.draw()
     tm.run()
     tm.draw()
     assert '101' in ''.join(tm.tape)
+
+
+def test_quintuple_to_quadruple():
+    transitions = {
+        '1': {
+            '0': Transition('2', '1', 'R'),
+            '1': Transition('1', '0', 'L')
+        },
+        '2': {
+            '0': Transition('H', '0', 'R'),
+            '1': Transition('H', '1', 'R')
+        }
+    }
+    
+    tm = TM(transitions=transitions, start_state='1', tape=['0', '1', '0'], head_idx=0, empty_symbol='0')
+    new_tm = quintuple_to_quadruple(tm)
+    
+    print(new_tm)
+
+
+def test_move_until():
+    tape = ['#', '0', '0', '0', '#', '1', '0', '1', '#', '0', '0']
+    transitions = {
+        '1' : {
+            '#': Transition('1', None, RIGHT),
+            '0': MoveUntil('2', '#', RIGHT, overshoot=1, prefix='nextHash_'),
+            '1': MoveUntil('2', '#', RIGHT, overshoot=1, prefix='nextHash_'),
+        },
+        '2' : {
+            '1': MoveUntil('3', '#', RIGHT, overshoot=0, prefix='nextHash2_'),
+            '#': Transition('3', None, LEFT),
+        },
+        '3' : {}
+    }
+    tm = TM(transitions=transitions, start_state='1', tape=tape, head_idx=0, empty_symbol='0')
+    tm = compile_super_transitions(tm)
+    tm.draw()
+    tm.run()
+    tm.draw()
 
 if __name__ == "__main__":
     test_tm_methods()
@@ -94,4 +134,6 @@ if __name__ == "__main__":
     test_save_to_xml()
     test_two_to_four_symbol_expansion()
     test_four_to_two_symbol_expansion()
+    test_quintuple_to_quadruple()
+    test_move_until()
     print("All tests passed!")

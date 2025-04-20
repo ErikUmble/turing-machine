@@ -2,6 +2,8 @@ import xml.dom.minidom as minidom
 import xml.etree.ElementTree as ET
 import random
 
+
+from utils import get_state_id_map
 from tm import TM, Transition, TapeStack, LEFT, RIGHT
 
 
@@ -104,13 +106,7 @@ def save_to_xml(tm, filepath):
         print(f"Warning: Known bug in Turing Machine Simulator Application assigns state '0' to first state too. You will need to manually set the start state to the correct one (which also will have an arrow to it) in the Application.")
 
     # rename all states to simple integers
-    state_id_map = {}
-    state_id_map[tm.state] = '1'
-    counter = 2
-    for state_id in tm.transitions.keys():
-        if state_id not in state_id_map:
-            state_id_map[state_id] = str(counter)
-            counter += 1
+    state_id_map = get_state_id_map(tm)
     
     # Add states
     state_names = list(tm.transitions.keys())

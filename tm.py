@@ -1,6 +1,7 @@
 import json
 import xml.etree.ElementTree as ET
 
+
 RIGHT = 'R'
 LEFT = 'L'
 
@@ -111,6 +112,12 @@ class TM:
     def step(self):
         symbol = self.read()
         transition = self.transitions[self.state].get(symbol)
+
+        # TODO: could implement a "simulation" method on super transitions to support pre-compile
+        from subroutine import SuperTransition
+        if isinstance(transition, SuperTransition):
+            raise Exception("Compile the TM to transform SuperTransitions before running")
+        
         if transition:
             self.write(transition.symbol_to_write or symbol)  # write the same symbol if None write value specified in the transition
             if transition.direction == RIGHT:
