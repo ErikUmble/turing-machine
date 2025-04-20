@@ -1,4 +1,5 @@
 import json
+import xml.etree.ElementTree as ET
 
 RIGHT = 'R'
 LEFT = 'L'
@@ -53,15 +54,39 @@ class Transition:
         self.direction = data["m"]
 
 class TM:
-    def __init__(self):
-        # format {state_name : {symbol: Transition}}
-        self.transitions = {'0':{}, '1':{}}
-        self.state = '1'
+    def __init__(self, transitions=None, start_state='1', tape=None, head_idx=0, empty_symbol='0'):
+        """
+        transitions: {state_name : {symbol: Transition}}
+        start_state: initial state of the TM
+        tape: initial tape contents [list of symbols]
+        head_idx: index of the head in the tape (0 is the leftmost position in the initial tape)
+        empty_symbol: symbol used to represent unspecified cells on the infinite tape
+        """
+        self.transitions = transitions or {'0':{}, '1':{}}
+        self.state = start_state
+        self.empty_symbol = empty_symbol
+
+        self.set_tape(tape=tape, head_idx=head_idx)
+
+    @property
+    def tape(self):
+        # return the tape as a list
+        return self.l_tape.stack + self.r_tape.stack[::-1]
+    
+    @property
+    def head_idx(self):
+        # return the index of the head in the tape
+        return len(self.l_tape.stack)
+    
+    def set_tape(self, tape=None, head_idx=0):
         # convention: head is at last item in r_tape
         # and r_tape is in reverse order (moving right means popping from the back)
         # both tapes are treated as stacks with the head at the top
-        self.l_tape = TapeStack()
-        self.r_tape = TapeStack()
+        tape = tape or [self.empty_symbol,]
+        r_stop = head_idx - 1 if head_idx > 0 else None
+
+        self.l_tape = TapeStack(tape[:head_idx], self.empty_symbol)
+        self.r_tape = TapeStack(tape[-1:r_stop:-1], self.empty_symbol)
 
     def move_right(self):
         # pop from the right tape
@@ -96,6 +121,13 @@ class TM:
         else:
             raise HaltException(f"Transition not found for state {self.state} and symbol {symbol}")
         
+    def run(self):
+        while True:
+            try:
+                self.step()
+            except HaltException:
+                break
+        
     def __str__(self):
         return json.dumps({
             "state": self.state,
@@ -124,4 +156,26 @@ class TM:
                     t = Transition('', '', '')
                     t.load(json.loads(transition))
                     self.transitions[state][symbol] = t
+
+    def draw(self, max_tape_length=20):
+        # Draw the tape with the head position
+        tape_contents = self.tape
+        head_pos = self.head_idx
+        if head_pos < max_tape_length // 2:
+            tape_contents = tape_contents[:max_tape_length]
+        elif len(self.tape) > max_tape_length:
+            tape_contents = tape_contents[:head_pos + (max_tape_length // 2)]
+            head_pos = max_tape_length - (len(tape_contents) - head_pos)
+            tape_contents = tape_contents[-max_tape_length:]
         
+        tape_str = '|'.join(tape_contents)
+        head_str = ' ' * (head_pos * 2) + '^'
+        border = '-' * (len(tape_str) + 1)
+        print(f"State: {self.state}")
+        print(border)
+        print(tape_str)
+        print(border)
+        print(head_str)
+        
+
+
