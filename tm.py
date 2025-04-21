@@ -112,6 +112,7 @@ class TM:
     def step(self):
         symbol = self.read()
         transition = self.transitions[self.state].get(symbol)
+        #print(self.state, symbol, transition)
 
         # TODO: could implement a "simulation" method on super transitions to support pre-compile
         from subroutine import SuperTransition

@@ -51,7 +51,7 @@ def load_from_xml(filepath):
         if new_char == 'null':
             new_char = None
 
-        if direction_code == 'null':
+        if direction_code == '0':
             direction = None
         else:
             # Direction in XML: 1 = LEFT, 2 = RIGHT

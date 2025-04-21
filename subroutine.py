@@ -103,7 +103,6 @@ class MoveUntil(SuperTransition):
             transitions[self.prefix + '1'][symbol] = Transition(self.prefix + '1', symbol, self.direction)
 
         reverse_direction = LEFT if self.direction == RIGHT else RIGHT
-        print(self.overshoot)
 
         if self.overshoot == -1:
             transitions[self.prefix + '1'][self.target_symbol] = Transition(self.state_to, self.target_symbol, reverse_direction)
@@ -115,6 +114,41 @@ class MoveUntil(SuperTransition):
             raise Exception("Invalid overshoot value")
         
         return transitions, self.prefix + '1'
+    
+class MoveUntilRepeat(SuperTransition):
+    """
+    Move in specified direction until target symbol is seen n times. When n=1, this is equivalent to MoveUntil with overshoot=0.
+    The n occurances of the target symbol need not be consecutive.
+    """
+    def __init__(self, state_to, target_symbol, n, direction, prefix=None, all_symbols=('0', '1', '#', '@')):
+        if direction != RIGHT and direction != LEFT:
+            raise ValueError("direction must be either RIGHT or LEFT")
+        if n < 1:
+            raise ValueError("n must be greater than 0")
+        super().__init__(state_to, prefix)
+        self.target_symbol = target_symbol
+        self.direction = direction
+        self.n = n
+        self.all_symbols = all_symbols
+
+    def assemble(self):
+        transitions = {
+            self.state_to: {},
+        }
+        for i in range(1, self.n+1):
+            transitions[self.prefix + str(i)] = {}
+            for symbol in self.all_symbols:
+                if i == self.n:
+                    transitions[self.prefix + str(i)][symbol] = MoveUntil(self.state_to, self.target_symbol, self.direction, overshoot=0, prefix=self.prefix + str(i) + '_', all_symbols=self.all_symbols)
+                else:
+                    transitions[self.prefix + str(i)][symbol] = MoveUntil(self.prefix + str(i + 1), self.target_symbol, self.direction, overshoot=1, prefix=self.prefix + str(i) + '_', all_symbols=self.all_symbols)
+        
+        # assembler output cannot contain supertransitions
+        from compiler import compile_super_transitions
+        tmp = TM(transitions, self.prefix + '1')
+        tmp = compile_super_transitions(tmp)
+
+        return tmp.transitions, tmp.state
             
 class MoveFixed(SuperTransition):
     """
@@ -136,7 +170,7 @@ class MoveFixed(SuperTransition):
         for i in range(1, self.distance+1):
             transitions[self.prefix + str(i)] = {}
             for symbol in self.all_symbols:
-                if i == self.distance - 1:
+                if i == self.distance:
                     transitions[self.prefix + str(i)][symbol] = Transition(self.state_to, symbol, self.direction)
                 else:
                     transitions[self.prefix + str(i)][symbol] = Transition(self.prefix + str(i + 1), symbol, self.direction)

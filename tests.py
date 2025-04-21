@@ -146,16 +146,19 @@ def test_construct_utm_input():
     assert ''.join(utm_input) == "1111101101111011110110101011010111011101101110101"
 
 def test_utm():
-    target = load_from_xml("examples/add_tm.xml")
-    target.set_tape(['1', '1',' 1', '0', '1', '1'])  # 2 + 1
-    
+    target = load_from_xml("examples/simple_tm.xml")
+    target.set_tape(['1', '1','1', '0', '1', '1'])  # 2 + 1
+    print(target)
     utm_input = construct_utm_input(target)
     utm = get_utm()
     utm.set_tape(utm_input)
     utm = compile_super_transitions(utm)
-    utm.draw(max_tape_length=100)
+    print(utm)
+    
+    utm.draw(max_tape_length=70)
     utm.run()
-    utm.draw(max_tape_length=100)
+    utm.draw(max_tape_length=70)
+    print(''.join(utm.tape))
     #assert "11110" in ''.join(utm.tape)
 
 

@@ -185,6 +185,17 @@ def standardize_simulation_target(tm):
             new_transitions[state_id][symbol] = transition
     return TM(transitions=new_transitions, start_state='1', tape=tm.tape, head_idx=tm.head_idx, empty_symbol=tm.empty_symbol)
 
+def compose_transitions(t1, t2):
+    """
+    Merges two transition dictionaries into one, updating the first with the second, but not removing any nested keys of the first.
+    """
+    for state_from, transitions in t2.items():
+        if state_from not in t1:
+            t1[state_from] = {}
+        for symbol, transition in transitions.items():
+            t1[state_from][symbol] = transition
+    return t1
+
 def compile_super_transitions(tm):
     """
     Convert a Turing Machine that uses super transitions to one that uses normal transitions.
@@ -196,7 +207,7 @@ def compile_super_transitions(tm):
             if isinstance(transition, SuperTransition):
                 # if the transition is a super transition, we need to assemble it
                 sub_transitions, first_state = transition.assemble()
-                new_transitions.update(sub_transitions)
+                new_transitions = compose_transitions(new_transitions, sub_transitions)
                 new_transitions[state_from][symbol] = Transition(first_state, None, None)
             else:
                 new_transitions[state_from][symbol] = transition

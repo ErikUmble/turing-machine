@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<TuringMachine>
+    <States>
+        <State_0>
+            <x>190.0</x>
+            <y>145.0</y>
+            <finalstate>false</finalstate>
+            <startstate>false</startstate>
+        </State_0>
+        <State_1>
+            <x>303.0</x>
+            <y>149.0</y>
+            <finalstate>false</finalstate>
+            <startstate>true</startstate>
+        </State_1>
+    </States>
+    <Transitions>
+        <Transition_0>
+            <fromstate>1</fromstate>
+            <tostate>0</tostate>
+            <oldchar>0</oldchar>
+            <newchar>1</newchar>
+            <direction>0</direction>
+        </Transition_0>
+        <Transition_1>
+            <fromstate>1</fromstate>
+            <tostate>1</tostate>
+            <oldchar>1</oldchar>
+            <newchar>null</newchar>
+            <direction>2</direction>
+        </Transition_1>
+    </Transitions>
+</TuringMachine>
