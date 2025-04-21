@@ -2,50 +2,50 @@
 <TuringMachine>
     <States>
         <State_2>
-            <x>422.2031920376052</x>
-            <y>531.0970043809896</y>
+            <x>260.7329348229404</x>
+            <y>543.709665919836</y>
             <finalstate>false</finalstate>
             <startstate>false</startstate>
         </State_2>
         <State_1>
-            <x>305.62719930146835</x>
-            <y>255.3885919118976</y>
+            <x>383.1946452583417</x>
+            <y>570.3792215993681</y>
             <finalstate>false</finalstate>
             <startstate>true</startstate>
         </State_1>
         <State_3>
-            <x>352.01105365521823</x>
-            <y>101.40777047537537</y>
+            <x>457.8126537006891</x>
+            <y>475.3780611766249</y>
             <finalstate>false</finalstate>
             <startstate>false</startstate>
         </State_3>
         <State_4>
-            <x>503.46930111402924</x>
-            <y>301.2299539802907</y>
+            <x>506.985341493803</x>
+            <y>492.4622916545892</y>
             <finalstate>false</finalstate>
             <startstate>false</startstate>
         </State_4>
         <State_5>
-            <x>488.4436031859495</x>
-            <y>11.586523180356266</y>
+            <x>210.1940698277162</x>
+            <y>342.44710752807106</y>
             <finalstate>false</finalstate>
             <startstate>false</startstate>
         </State_5>
         <State_6>
-            <x>448.29922316777646</x>
-            <y>256.6646208787175</y>
+            <x>291.73171836552723</x>
+            <y>587.6388345465563</y>
             <finalstate>false</finalstate>
             <startstate>false</startstate>
         </State_6>
         <State_7>
-            <x>176.76975349733203</x>
-            <y>299.7715776793723</y>
+            <x>196.69774158054742</x>
+            <y>317.7822439262975</y>
             <finalstate>false</finalstate>
             <startstate>false</startstate>
         </State_7>
         <State_8>
-            <x>74.20709214550136</x>
-            <y>330.4619590418168</y>
+            <x>368.3423897140815</x>
+            <y>336.495906163057</y>
             <finalstate>false</finalstate>
             <startstate>false</startstate>
         </State_8>

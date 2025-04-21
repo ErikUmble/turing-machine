@@ -116,7 +116,40 @@ class MoveUntil(SuperTransition):
         
         return transitions, self.prefix + '1'
             
+class MoveFixed(SuperTransition):
+    """
+    Moves a fixed number of cells in the specified direction.
+    """
+    def __init__(self, state_to, distance, direction, prefix=None, all_symbols=('0', '1', '#', '@')):
+        if direction != RIGHT and direction != LEFT:
+            raise ValueError("direction must be either RIGHT or LEFT")
+        if distance < 1:
+            raise ValueError("distance must be greater than 0")
+        super().__init__(state_to, prefix)
+        self.distance = distance
+        self.direction = direction
+        self.all_symbols = all_symbols
 
+    def assemble(self):
+        transitions = {}
+        
+        for i in range(1, self.distance+1):
+            transitions[self.prefix + str(i)] = {}
+            for symbol in self.all_symbols:
+                if i == self.distance - 1:
+                    transitions[self.prefix + str(i)][symbol] = Transition(self.state_to, symbol, self.direction)
+                else:
+                    transitions[self.prefix + str(i)][symbol] = Transition(self.prefix + str(i + 1), symbol, self.direction)
+        
+        return transitions, self.prefix + '1'
+    
+
+class SwapPointerUntil(SuperTransition):
+    """
+    Swaps the current '@' symbol in the specified direction until swapping it with the target symbol.
+    """
+    # maybe would be better to just swap between '0' and '@'
+    pass
 
 
 def shift_right(end='00', next_state='0', prefix='shr_'):

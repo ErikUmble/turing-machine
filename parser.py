@@ -46,10 +46,16 @@ def load_from_xml(filepath):
         to_state = trans_elem.find("tostate").text
         old_char = trans_elem.find("oldchar").text
         new_char = trans_elem.find("newchar").text
-        
-        # Direction in XML: 1 = LEFT, 2 = RIGHT
         direction_code = trans_elem.find("direction").text
-        direction = LEFT if direction_code == "1" else RIGHT
+
+        if new_char == 'null':
+            new_char = None
+
+        if direction_code == 'null':
+            direction = None
+        else:
+            # Direction in XML: 1 = LEFT, 2 = RIGHT
+            direction = LEFT if direction_code == "1" else RIGHT
         
         # Create a Transition object
         transition = Transition(to_state, new_char, direction)

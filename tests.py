@@ -2,6 +2,7 @@ from tm import TM, Transition, HaltException
 from parser import load_from_xml, save_to_xml
 from subroutine import *
 from compiler import *
+from utm import *
 
 def test_tm_methods():
     # Test the TM class with a simple transition function
@@ -127,13 +128,46 @@ def test_move_until():
     tm.run()
     tm.draw()
 
+def test_construct_utm_input():
+    transitions = {
+        '0': {},
+        '1': {
+            '0': Transition('2', '1', None),
+            '1': Transition('1', None, RIGHT)
+        },
+        '2': {
+            '0': Transition('0', None, LEFT),
+            '1': Transition('0', '1', None)
+        }
+    }
+    tape = ['1', '0', '1']
+    tm = TM(transitions=transitions, start_state='1', tape=tape, head_idx=0, empty_symbol='0')
+    utm_input = construct_utm_input(tm)
+    assert ''.join(utm_input) == "1111101101111011110110101011010111011101101110101"
+
+def test_utm():
+    target = load_from_xml("examples/add_tm.xml")
+    target.set_tape(['1', '1',' 1', '0', '1', '1'])  # 2 + 1
+    
+    utm_input = construct_utm_input(target)
+    utm = get_utm()
+    utm.set_tape(utm_input)
+    utm = compile_super_transitions(utm)
+    utm.draw(max_tape_length=100)
+    utm.run()
+    utm.draw(max_tape_length=100)
+    #assert "11110" in ''.join(utm.tape)
+
+
 if __name__ == "__main__":
-    test_tm_methods()
-    test_draw()
-    test_load_xml()
-    test_save_to_xml()
-    test_two_to_four_symbol_expansion()
-    test_four_to_two_symbol_expansion()
-    test_quintuple_to_quadruple()
-    test_move_until()
+    #test_tm_methods()
+    #test_draw()
+    #test_load_xml()
+    #test_save_to_xml()
+    #test_two_to_four_symbol_expansion()
+    #test_four_to_two_symbol_expansion()
+    #test_quintuple_to_quadruple()
+    #test_move_until()
+    #test_construct_utm_input()
+    test_utm()
     print("All tests passed!")
