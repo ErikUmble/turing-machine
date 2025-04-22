@@ -30,9 +30,7 @@ def construct_utm_input(tm):
     - '111': move left
     - '1111': move right
     """
-    print("there is probably a bug in standardize_simulation_target")
-    #tm = standardize_simulation_target(tm)
-    #print(tm)
+    tm = standardize_simulation_target(tm)
     num_states = len(tm.transitions)
 
     utm_input = ['1' for i in range(num_states)] + ['0']
@@ -189,12 +187,14 @@ def get_utm():
             '@': Transition('handle_write_0_action', None, RIGHT),
             '1': Transition('action_done', '0', None),
             '0': Transition('action_done', '0', None),
+            '#': Transition('action_done', '0', None),  # handle empty tape interpreted as '#'
         },
         'handle_write_1_action' : {
             # enter this state either at or just right of the user tape pointer
             '@': Transition('handle_write_1_action', None, RIGHT),
             '1': Transition('action_done', '1', None),
             '0': Transition('action_done', '1', None),
+            '#': Transition('action_done', '1', None),  # handle empty tape interpreted as '#'
         },
         'handle_move_left_action' : {
             # enter this state just left of the user tape pointer
@@ -320,7 +320,12 @@ def get_utm():
         'clean_tape' : {
             '@': Transition('decode_tape', '#', RIGHT),  # simulated head was already at the leftmost position of the tape
             '1': Transition('clean_tape_saw1', '#', RIGHT),
-            '0': Transition('clean_tape_saw0', '#', RIGHT),
+            '0': Transition('clean_tape_clear_leading_0s', '#', RIGHT),  # we have to clear leading 0s for the postprocessing decode step to work
+        },
+        'clean_tape_clear_leading_0s': {
+            '0': Transition('clean_tape_clear_leading_0s', '#', RIGHT),
+            '1': Transition('clean_tape_saw1', '#', RIGHT),
+            '@': Transition('decode_tape', '#', RIGHT),
         },
         'clean_tape_saw1' : {
             '@': Transition('done_clearning_tape', '1', None),
@@ -351,12 +356,23 @@ def get_utm():
     core = four_to_two_symbols(core)
     postprocess = compile_super_transitions(TM(transitions=postprocess))
     transitions = compose_transitions(compose_transitions(preprocess.transitions, core.transitions), postprocess.transitions)
+    #transitions = core.transitions
+    #utm = TM(transitions=transitions, start_state='2', empty_symbol='#')
     utm = TM(transitions=transitions, start_state='1')
     utm = remove_null_transitions(utm)
     return utm
     
 
 if __name__ == "__main__":
+    """
+    Construct UTM, saving it to an XML file
+    """
     from parser import save_to_xml
+    import sys
+
+    filepath = 'examples/utm.xml'
+    if len(sys.argv) == 2:
+        filepath = sys.argv[1]
+
     utm = get_utm()
-    save_to_xml(utm, "examples/utm.xml")
+    save_to_xml(utm, filepath)

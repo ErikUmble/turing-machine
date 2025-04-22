@@ -161,12 +161,13 @@ def standardize_simulation_target(tm):
     - Quadruple transitions
     - '0' is halt state
     - '1' is the start state
-    - if there are n states, then they are named '0', '1', '2', ..., 'n-1'
-    - every transition is defined for '0' and '1' except for the halt state, which has no transitons
+    - if there are n non-halting states, then they are named '0', '1', '2', ..., 'n'
+    - every transition is defined for symbols '0' and '1' except for the halt state, which has no transitons
     - Only uses right half of the tape
 
     It is up to the user to ensure the TM only uses the right half of the tape, but this compilation step handles the rest.
     """
+    print(f"Warning: standardize_simulation_target has not been properly tested on nonstandard TMs yet")
     tm = compile_super_transitions(tm)
     tm = remove_null_transitions(tm)
     tm = quintuple_to_quadruple(tm)
@@ -186,7 +187,11 @@ def standardize_simulation_target(tm):
                 transition.state_to = state_id_map[transition.state_to]
 
             new_transitions[state_id][symbol] = transition
-    return TM(transitions=new_transitions, start_state='1', tape=tm.tape, head_idx=tm.head_idx, empty_symbol=tm.empty_symbol)
+
+    tm = TM(transitions=new_transitions, start_state='1', tape=tm.tape, head_idx=tm.head_idx, empty_symbol=tm.empty_symbol)
+    #tm = remove_null_transitions(tm)
+    #print(tm)
+    return tm
 
 def compose_transitions(t1, t2):
     """
@@ -225,8 +230,9 @@ def remove_null_transitions(tm):
     for state_from, transitions in tm.transitions.items():
         new_transitions[state_from] = {}
         for symbol, transition in transitions.items():
-            if transition.symbol_to_write is None and transition.direction is None:
+            if transition.symbol_to_write is None and transition.direction is None:  # TODO: can improve by using (transition.symbol_to_write is None or transition.symbol_to_write == symbol)
                 # if the transition does not write or move, we can skip it
+                #print(f"Removing null transition: {state_from} -> {symbol} -> {transition.state_to}")
                 next_transition = tm.transitions[transition.state_to].get(symbol)
                 while next_transition is not None and next_transition.symbol_to_write is None and next_transition.direction is None:
                     next_transition = tm.transitions[next_transition.state_to].get(symbol)

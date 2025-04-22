@@ -157,6 +157,11 @@ def test_construct_utm_input():
     utm_input = construct_utm_input(tm)
     assert ''.join(utm_input) == "1111101101111011110110101011010111011101101110101"
 
+def test_simple_utm_input():
+    target = load_from_xml("examples/simple2_tm.xml")
+    target.set_tape(['1', '1', '1', '0', '1', '1'])
+    print(''.join(construct_utm_input(target)))
+
 def test_utm():
     target = load_from_xml("examples/simple_tm.xml")
     target.set_tape(['1', '1', '1', '0', '1', '1'])  # 2 + 1
@@ -173,6 +178,23 @@ def test_utm():
     utm.draw(max_tape_length=70)
     print(''.join(utm.tape))
     assert "11110" in ''.join(utm.tape)
+
+def test_utm2():
+    target = load_from_xml("examples/shift_copy_tm.xml")
+    target.set_tape(['1', '1', '1'])
+    #print(target)
+    utm_input = construct_utm_input(target)
+    utm = get_utm()
+    #save_to_xml(utm, "examples/utm.xml")
+    utm = load_from_xml("examples/utm.xml")
+    utm.set_tape(utm_input)   
+    #print(utm)
+    print(''.join(utm.tape))
+    utm.draw(max_tape_length=70)
+    utm.run()
+    utm.draw(max_tape_length=70)
+    print(''.join(utm.tape))
+    #assert "11110" in ''.join(utm.tape)
 
 
 def test_compile_four_to_two_symbols():
@@ -218,7 +240,8 @@ if __name__ == "__main__":
     #test_quintuple_to_quadruple()
     #test_move_until()
     #test_construct_utm_input()
-    test_utm()
+    test_utm2()
     #test_compile_four_to_two_symbols()
     #test_remove_null_transitions()
+    #test_simple_utm_input()
     print("All tests passed!")

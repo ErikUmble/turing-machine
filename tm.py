@@ -190,3 +190,16 @@ class TM:
         
 
 
+if __name__ == "__main__":
+    import sys
+    from parser import load_from_xml
+    tm_filepath = sys.argv[1]
+    initial_tape = sys.argv[2].strip()
+    initial_tape = [c for c in initial_tape]
+
+    tm = load_from_xml(tm_filepath)
+    tm.set_tape(initial_tape)
+    tm.draw(max_tape_length=50)
+    tm.run()
+    tm.draw(max_tape_length=50)
+    print(''.join(tm.tape[tm.head_idx:]))
