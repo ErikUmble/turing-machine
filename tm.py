@@ -208,5 +208,4 @@ if __name__ == "__main__":
     tm.set_tape(initial_tape)
     tm.draw(max_tape_length=50)
     tm.run()
-    tm.draw(max_tape_length=50)
     print(''.join(tm.tape[tm.head_idx:]))

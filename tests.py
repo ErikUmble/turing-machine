@@ -61,7 +61,7 @@ def test_load_xml():
 
 def test_save_to_xml():
     tm = load_from_xml("examples/shift_right_tm.xml")
-    assert save_to_xml(tm, "examples/shift_right_tm_copy.xml")
+    assert save_to_xml(tm, "examples/shift_right_tm(1).xml")
 
     # check that symbols other than '0' and '1' are not allowed
     tm.transitions['1']['0'].symbol_to_write = '2'
