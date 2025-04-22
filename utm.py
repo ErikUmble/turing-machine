@@ -30,7 +30,7 @@ def construct_utm_input(tm):
     - '111': move left
     - '1111': move right
     """
-    print("probably a bug in standardize_simulation_target")
+    print("there is probably a bug in standardize_simulation_target")
     #tm = standardize_simulation_target(tm)
     #print(tm)
     num_states = len(tm.transitions)
@@ -48,10 +48,12 @@ def construct_utm_input(tm):
 def get_utm():
     preprocess = {
         # encode the tape to 4-symbol
-        '1': TwoToFourSymbolExpansion('TODO')
+        '1': {
+            # this requires there to be at least one '1' on the input, and it makes sense to just halt if that is not the case
+            '1': TwoToFourSymbolExpansion('2'),
+        }
     }
-    transitions = {
-        '0': {},
+    core = {
     # insert '#' in between memory segments and initialize '@' to left part of each region
         # move left two times, add '#@'
         '2': {
@@ -59,9 +61,11 @@ def get_utm():
         },
         '3': {
             '0': Transition('4', '#', RIGHT),
+            '#': Transition('4', '#', RIGHT),  # handle empty tape interpreted as '#'
         },
         '4': {
             '0': Transition('5', '@', RIGHT),
+            '#': Transition('5', '@', RIGHT),  # handle empty tape interpreted as '#'
         },
         # change the last '1' of <num states n> to '#' and the following '0' to '@'
         # as we can use n-counting (rather than n+1 counting) for number of states
@@ -109,11 +113,13 @@ def get_utm():
         'shift_input_right_saw1': {
             # enter this state while on the first '1' of the input ('#' to the left)
             '0': Transition('shift_input_right_saw0', '1', RIGHT),
+            '#': Transition('shift_input_right_saw0', '1', RIGHT), # handle empty tape interpreted as '#'
             '1': Transition('shift_input_right_saw1', '1', RIGHT),
         },
         'shift_input_right_saw0': {
             # enter this state while on the first '1' of the input ('#' to the left)
             '0': Transition('done_shifting', '0', None),
+            '#': Transition('done_shifting', '0', None), # handle empty tape interpreted as '#'
             '1': Transition('shift_input_right_saw1', '0', RIGHT),
         },
     # finish initial preprocessing by re-inserting '@' pointer into state segment and reseting the state index counter
@@ -133,14 +139,14 @@ def get_utm():
             '1': MoveUntil('done_shifting_4', '#', LEFT, overshoot=-1),
         },
         'done_shifting_4': {
-            '1': Transition('sim_loop_1', '@', LEFT),
+            '1': Transition('sim_loop', '@', LEFT),
         },
     # main simulation loop
-        'sim_loop_1': {
+        'sim_loop': {
             # enter this state while at the '#' just left of the state index memory segment
             # ensure that the state index counter is reset and that the state description pointer is at the start of the current state description
             # this will "sanity check" that state index counter is reset
-            '#': Transition('sim_loop_1', None, RIGHT),
+            '#': Transition('sim_loop', None, RIGHT),
             '@': Transition('read_tape_head_1', None, RIGHT),
             # we don't define transiton on '1', because '@' had better be just right of the '#'
         },
@@ -154,6 +160,7 @@ def get_utm():
             # if we see a '0' then state desc pointer is already at the right action
             '0': MoveUntilRepeat('parse_action', '@', 2, LEFT),
             '1': MoveUntilRepeat('read_a_one', '@', 2, LEFT),
+            '#': MoveUntilRepeat('parse_action', '@', 2, LEFT),  # at the right end of known user tape, the '00' is interpreted as '#' but we want it to be treated as a '0' instead
         },
         'read_a_one': {
             '@': Transition('read_a_one', '0', RIGHT),
@@ -174,16 +181,182 @@ def get_utm():
             '1': Transition('parse_action_at_least_3', None, RIGHT)
         },
         'parse_action_at_least_3': {
-            '0': MoveUntil('handle_move_left_action', '@', RIGHT, overshoot=0),
-            '1': MoveUntil('handle_move_right_action', '@', RIGHT, overshoot=0),
+            '0': MoveUntil('handle_move_left_action', '@', RIGHT, overshoot=-1),
+            '1': MoveUntil('handle_move_right_action', '@', RIGHT, overshoot=1),
         },
-        'handle_write_0_action' : {},
-        'handle_write_1_action' : {},
-        'handle_move_left_action' : {},
-        'handle_move_right_action' : {},
-     
-        
-
+        'handle_write_0_action' : {
+            # enter this state either at or just right of the user tape pointer
+            '@': Transition('handle_write_0_action', None, RIGHT),
+            '1': Transition('action_done', '0', None),
+            '0': Transition('action_done', '0', None),
+        },
+        'handle_write_1_action' : {
+            # enter this state either at or just right of the user tape pointer
+            '@': Transition('handle_write_1_action', None, RIGHT),
+            '1': Transition('action_done', '1', None),
+            '0': Transition('action_done', '1', None),
+        },
+        'handle_move_left_action' : {
+            # enter this state just left of the user tape pointer
+            '#': Transition('move_out_of_bounds', None, None), # cannot move left past the user tape boundary (treat this as a program crash / termination)
+            '1': Transition('handle_move_left_action_saw1', '@', RIGHT),
+            '0': Transition('handle_move_left_action_saw0', '@', RIGHT),
+        },
+        'move_out_of_bounds' : {
+            # for now, handle this as a program crash; remove the state desc pointer and go to the halt/cleanup state
+            '#': MoveUntil('move_out_of_bounds', '@', LEFT),
+            '@': Transition('move_out_of_bounds', '0', None),
+            '0': Transition('program_halt', None, None),
+        },
+        'handle_move_left_action_saw1' : {
+            '@': Transition('action_done', '1', None)
+        },
+        'handle_move_left_action_saw0' : {
+            '@': Transition('action_done', '0', None)
+        },
+        'handle_move_right_action' : {
+            # enter this state just right of the user tape pointer
+            '#': Transition('handle_move_right_action_saw0', '@', LEFT), # moving right past 'known' tape territory '00' interpreted as '#' but we want it to be '0' instead
+            '1': Transition('handle_move_right_action_saw1', '@', LEFT),
+            '0': Transition('handle_move_right_action_saw0', '@', LEFT),
+        },
+        'handle_move_right_action_saw1' : {
+            '@': Transition('action_done', '1', None)
+        },
+        'handle_move_right_action_saw0' : {
+            '@': Transition('action_done', '0', None)
+        },
+        # next step: determine which simulated state to transition to next
+        'action_done': {
+            # go to the state desc pointer
+            '#': MoveUntil('action_done', '#', LEFT),
+            '1': MoveUntil('action_done', '#', LEFT),
+            '0': MoveUntil('action_done', '#', LEFT),
+            '#': MoveUntil('get_next_state_desc', '@', LEFT),
+        },
+        'get_next_state_desc': {
+            # enter this state at the '@' in the state description pointing to the action that was just taken
+            '@': Transition('get_next_state_desc', '0', RIGHT),
+            '1': MoveUntil('get_next_state_desc', '0', RIGHT),
+            '0': MoveFixed('check_for_transition_to_halt', 2, RIGHT),  # since the q values are 1-indexed, skip the first one, which represents the 0 state, as the index counter is already at 0
+        },
+        'check_for_transition_to_halt' :{
+            '0': Transition('program_halt', None, None),  # this simulated transition goes to the 0th state, which is the halt state
+            '1': Transition('try_increment_state_desc', None, RIGHT)  # normal situation: we can try incrementing to count up to the next state to get to (NOTE: we do the first increment as an extra here since the entire state desc segment skips the 0th state)
+        },
+        'try_increment_state_desc': {
+            # enter this state at the state description pointer, which should be pointing at the current count of the next state to transition to
+            '0': Transition('counter_at_next_state_idx', None, LEFT),  # we intentionally don't write the pointer here, because of the '#' boundary situation, and because we will just need to reset it to the left side of state desc in a moment
+            '#': Transition('counter_at_next_state_idx', None, LEFT),  # we see this when we are at the end of the state desc segment
+            '1': Transition('increment_state_idx', '@', LEFT),
+            '@': Transition('try_increment_state_desc', '1', RIGHT),
+        },
+        'increment_state_idx': {
+            '1': MoveUntil('increment_state_idx_2', '@', LEFT, overshoot=-1),
+            '0': MoveUntil('increment_state_idx_2', '@', LEFT, overshoot=-1),
+        },
+        'increment_state_idx_2': {
+            '1': Transition('increment_state_idx_2', '@', LEFT),
+            '@': Transition('increment_state_idx_3', '1', RIGHT),
+        },
+        'increment_state_idx_3': {
+            '@': MoveUntilRepeat('try_increment_state_desc', '@', 2, RIGHT),  # we are already at a '@' which means this technically just moves over to the next '@' which is the state desc pointer
+        },
+    # we need to position the state desc pointer to the start of the correct next state
+    # we have already counted the number of states descs to skip through, in the state index counter
+        'counter_at_next_state_idx': {
+            # enter this state within the state desc segment, which should not have any '@' at the moment
+            # we need to reset the '@'
+            '1': MoveUntil('counter_at_next_state_idx', '#', LEFT, overshoot=-1),
+            '0': Transition('counter_at_next_state_idx', '@', None),
+            '@': MoveUntilRepeat('try_decrement_state_idx', '@', 2, LEFT),  # we are already at a '@' which means this technically just moves over to the next '@' which is the state idx pointer
+        },
+        'try_decrement_state_idx': {
+            # enter this state at the state idx pointer
+            '@': Transition('try_decrement_state_idx', '1', LEFT),
+            '#': Transition('try_decrement_state_idx_oops_too_far', None, RIGHT),
+            '1': Transition('try_decrement_state_idx_2', '@', None),
+        },
+        'try_decrement_state_idx_2': {
+            '@': MoveUntilRepeat('skip_to_next_state_desc', '@', 2, RIGHT),  # we are already at a '@' which means this technically just moves over to the next '@' which is the state desc pointer
+        },
+        'try_decrement_state_idx_oops_too_far': {
+            '#': Transition('try_decrement_state_idx_oops_too_far', None, RIGHT),
+            '1': Transition('try_decrement_state_idx_oops_too_far', '@', None),
+            '@': MoveUntil('sim_loop', '#', LEFT),  # move back to the '#' (really this is just a single left step, but more concise to write it like this) and then start the sim loop over
+        },
+        'skip_to_next_state_desc' : {
+            # enter this state while at the '@' state desc pointer
+            '@': Transition('skip_to_next_state_desc', '0', RIGHT),
+            '1': MoveUntilRepeat('skip_to_next_state_desc', '0', 4, RIGHT),
+            '0': Transition('skip_to_next_state_desc_2', '@', None)
+        },
+        'skip_to_next_state_desc_2': {
+            '@': MoveUntilRepeat('try_decrement_state_idx', '@', 2, LEFT),  # we are already at a '@' which means this technically just moves over to the next '@' which is the state idx pointer
+        },
+    # when the simulated program halts, we need to clean up the simulation state before we can decode the result
+        'program_halt' : {
+            # enter this state while somewhere in the state desc segment
+            # we start by going back to the left edge of the state index segment
+            '1': MoveUntilRepeat('program_halt', '#', 2, LEFT),
+            '0': MoveUntilRepeat('program_halt', '#', 2, LEFT),
+            '@': MoveUntilRepeat('program_halt', '#', 2, LEFT), 
+            '#': Transition('clean_state_idx', None, RIGHT),
+        },
+        # since '#' represented by "00", we clean up by overwriting with '#' to reset tape contents to '0's
+        'clean_state_idx' : {
+            '@': Transition('clean_state_idx', '#', RIGHT),
+            '1': Transition('clean_state_idx', '#', RIGHT),
+            '0': Transition('clean_state_idx', '#', RIGHT),
+            '#': Transition('clean_state_desc', None, RIGHT),
+        },
+        'clean_state_desc' : {
+            '@': Transition('clean_state_desc', '#', RIGHT),
+            '1': Transition('clean_state_desc', '#', RIGHT),
+            '0': Transition('clean_state_desc', '#', RIGHT),
+            '#': Transition('clean_tape', None, RIGHT),
+        },
+        # to clean tape, we just need to shift everything before the '@' to the right by one and then move back to the start of the tape
+        'clean_tape' : {
+            '@': Transition('decode_tape', '#', RIGHT),  # simulated head was already at the leftmost position of the tape
+            '1': Transition('clean_tape_saw1', '#', RIGHT),
+            '0': Transition('clean_tape_saw0', '#', RIGHT),
+        },
+        'clean_tape_saw1' : {
+            '@': Transition('done_clearning_tape', '1', None),
+            '1': Transition('clean_tape_saw1', '1', RIGHT),
+            '0': Transition('clean_tape_saw0', '1', RIGHT),
+        },
+        'clean_tape_saw0' : {
+            '@': Transition('done_clearning_tape', '0', None),
+            '1': Transition('clean_tape_saw1', '0', RIGHT),
+            '0': Transition('clean_tape_saw0', '0', RIGHT),
+        },
+        'done_clearning_tape' : {
+            '1': MoveUntil('decode_tape', '#', LEFT, overshoot=-1),
+            '0': MoveUntil('decode_tape', '#', LEFT, overshoot=-1),
+        },
+        'decode_tape': {}
     }
-    return TM(transitions=transitions, start_state='2', empty_symbol='0')
+    postprocess = {
+        'decode_tape': {
+            '1': FourToTwoSymbolDecode('0', '4to2_')
+        },
+        '0': {}
+    }
+
+    # compile
+    preprocess = compile_super_transitions(TM(transitions=preprocess))
+    core = compile_super_transitions(TM(transitions=core))
+    core = four_to_two_symbols(core)
+    postprocess = compile_super_transitions(TM(transitions=postprocess))
+    transitions = compose_transitions(compose_transitions(preprocess.transitions, core.transitions), postprocess.transitions)
+    utm = TM(transitions=transitions, start_state='1')
+    utm = remove_null_transitions(utm)
+    return utm
     
+
+if __name__ == "__main__":
+    from parser import save_to_xml
+    utm = get_utm()
+    save_to_xml(utm, "examples/utm.xml")

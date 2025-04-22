@@ -112,7 +112,6 @@ class TM:
     def step(self):
         symbol = self.read()
         transition = self.transitions[self.state].get(symbol)
-        #print(self.state, symbol, transition)
 
         # TODO: could implement a "simulation" method on super transitions to support pre-compile
         from subroutine import SuperTransition
@@ -134,6 +133,10 @@ class TM:
             try:
                 self.step()
             except HaltException:
+                break
+            except Exception as e:
+                print(f"Error: {e}")
+                self.draw(max_tape_length=70)
                 break
         
     def __str__(self):

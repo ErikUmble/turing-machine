@@ -51,8 +51,8 @@ class FourToTwoSymbolDecode(SuperTransition):
         - After converting the tape, repositions head to the leftmost '1' and transitions to the return state
         - '11' -> '1'
         - '01' -> '0'
-        - '10' -> invalid
-        - '00' -> invalid
+        - '10' -> invalid @
+        - '00' -> invalid #
     """
     def __init__(self, state_to, prefix='4to2_'):
         super().__init__(state_to, prefix)

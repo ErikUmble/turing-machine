@@ -134,11 +134,13 @@ def save_to_xml(tm, filepath):
         # Start state
         startstate = ET.SubElement(state_elem, "startstate")
         startstate.text = "true" if state_name == tm.state else "false"
-    
     # Add transitions
     trans_idx = 0
     for from_state, state_transitions in tm.transitions.items():
         for symbol, transition in state_transitions.items():
+            if transition.state_to not in state_id_map:
+                #print(f"Warning: Transition to unknown state '{transition.state_to}' in state '{from_state}'. Skipping this transition.")
+                continue
             trans_elem = ET.SubElement(transitions, f"Transition_{trans_idx}")
             trans_idx += 1
             
@@ -161,7 +163,12 @@ def save_to_xml(tm, filepath):
             
             # Direction (1 = LEFT, 2 = RIGHT)
             direction = ET.SubElement(trans_elem, "direction")
-            direction.text = "1" if transition.direction == LEFT else "2"
+            if transition.direction is None:
+                direction.text = "0"
+            elif transition.direction == LEFT:
+                direction.text = "1"
+            elif transition.direction == RIGHT:
+                direction.text = "2"
     
     # Create a pretty-formatted XML string
     rough_string = ET.tostring(root, 'utf-8')
