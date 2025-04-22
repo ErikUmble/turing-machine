@@ -1,10 +1,11 @@
+# the parsers in this file were created with the help of Claude AI
 import xml.dom.minidom as minidom
 import xml.etree.ElementTree as ET
 import random
 
 
 from utils import get_state_id_map
-from tm import TM, Transition, TapeStack, LEFT, RIGHT
+from tm import TM, Transition, LEFT, RIGHT
 
 
 def load_from_xml(filepath):
@@ -13,7 +14,6 @@ def load_from_xml(filepath):
     
     Args:
         filepath (str): Path to the XML file
-        empty_symbol (str): Symbol to use for empty cells
         
     Returns:
         TM: A Turing Machine instance initialized with the transitions from the XML
@@ -80,9 +80,8 @@ def save_to_xml(tm, filepath):
     Args:
         tm (TM): The Turing Machine instance to save
         filepath (str): Path to save the XML file
-        
-    Returns:
-        bool: True if successful, False otherwise
+
+    Returns: True if successful
     """
     # Check that the TM only uses '0' and '1' symbols
     valid_symbols = {'0', '1'}
@@ -107,9 +106,6 @@ def save_to_xml(tm, filepath):
     root = ET.Element("TuringMachine")
     states = ET.SubElement(root, "States")
     transitions = ET.SubElement(root, "Transitions")
-
-    if tm.state != '0':
-        print(f"Warning: Known bug in Turing Machine Simulator Application assigns state '0' to first state too. You will need to manually set the start state to the correct one (which also will have an arrow to it) in the Application.")
 
     # rename all states to simple integers
     state_id_map = get_state_id_map(tm)
@@ -139,7 +135,7 @@ def save_to_xml(tm, filepath):
     for from_state, state_transitions in tm.transitions.items():
         for symbol, transition in state_transitions.items():
             if transition.state_to not in state_id_map:
-                #print(f"Warning: Transition to unknown state '{transition.state_to}' in state '{from_state}'. Skipping this transition.")
+                print(f"Warning: Transition to unknown state '{transition.state_to}' in state '{from_state}'. Skipping this transition.")
                 continue
             trans_elem = ET.SubElement(transitions, f"Transition_{trans_idx}")
             trans_idx += 1
@@ -178,5 +174,5 @@ def save_to_xml(tm, filepath):
     # Write to file
     with open(filepath, 'w') as f:
         f.write(pretty_xml)
-    
+        
     return True

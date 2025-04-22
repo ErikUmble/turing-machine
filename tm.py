@@ -129,15 +129,18 @@ class TM:
             raise HaltException(f"Transition not found for state {self.state} and symbol {symbol}")
         
     def run(self):
+        transitions = 0
         while True:
             try:
                 self.step()
+                transitions += 1
             except HaltException:
                 break
             except Exception as e:
                 print(f"Error: {e}")
-                self.draw(max_tape_length=70)
                 break
+        self.draw(max_tape_length=50)
+        print(f"Total transitions taken: {transitions}")
         
     def __str__(self):
         return json.dumps({
@@ -191,6 +194,10 @@ class TM:
 
 
 if __name__ == "__main__":
+    """
+    Run a saved TM (from XML file) on a given input tape
+    Usage: python tm.py <machine xml filepath> <initial tape>
+    """
     import sys
     from parser import load_from_xml
     tm_filepath = sys.argv[1]

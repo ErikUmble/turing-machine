@@ -43,7 +43,11 @@ def construct_utm_input(tm):
     utm_input += tm.tape
     return utm_input
 
-def get_utm():
+def get_utm(four_symbol_mode=False):
+    """
+    Returns a TM instance that acts as a Universal Turing Machine.
+    four_symbol_mode: if True, this uses '0', '1', '@', and '#' as the symbols on the tape; if false, this uses only '0' and '1' (after compiling)
+    """
     preprocess = {
         # encode the tape to 4-symbol
         '1': {
@@ -62,8 +66,14 @@ def get_utm():
             '#': Transition('4', '#', RIGHT),  # handle empty tape interpreted as '#'
         },
         '4': {
-            '0': Transition('5', '@', RIGHT),
-            '#': Transition('5', '@', RIGHT),  # handle empty tape interpreted as '#'
+            '0': Transition('append_zero', '@', None),
+            '#': Transition('append_zero', '@', None),  # handle empty tape interpreted as '#'
+        },
+        # in case the initial user tape is empty, we need to add a '0' to start it for the state desc segment to function properly
+        'append_zero': {
+            '@': MoveUntil('append_zero', '#', RIGHT),
+            '#': Transition('append_zero', '0', None),
+            '0': MoveUntil('5', '@', LEFT, overshoot=-1)
         },
         # change the last '1' of <num states n> to '#' and the following '0' to '@'
         # as we can use n-counting (rather than n+1 counting) for number of states
@@ -107,6 +117,7 @@ def get_utm():
             # enter this state while on the first '1' of the input ('#' to the left)
             '0': Transition('done_shifting', '@', None),
             '1': Transition('shift_input_right_saw1', '@', RIGHT),
+            '#': Transition('done_shifting', '@', None)
         },
         'shift_input_right_saw1': {
             # enter this state while on the first '1' of the input ('#' to the left)
@@ -204,6 +215,7 @@ def get_utm():
         },
         'move_out_of_bounds' : {
             # for now, handle this as a program crash; remove the state desc pointer and go to the halt/cleanup state
+            # we could change this to shift the tape contents right by one and then move back to the leftmost position of the tape
             '#': MoveUntil('move_out_of_bounds', '@', LEFT),
             '@': Transition('move_out_of_bounds', '0', None),
             '0': Transition('program_halt', None, None),
@@ -242,6 +254,7 @@ def get_utm():
         },
         'check_for_transition_to_halt' :{
             '0': Transition('program_halt', None, None),  # this simulated transition goes to the 0th state, which is the halt state
+            '#': Transition('program_halt', None, LEFT),  # handle boundary of state desc segment (move left into the state desc segment)
             '1': Transition('try_increment_state_desc', None, RIGHT)  # normal situation: we can try incrementing to count up to the next state to get to (NOTE: we do the first increment as an extra here since the entire state desc segment skips the 0th state)
         },
         'try_increment_state_desc': {
@@ -350,14 +363,18 @@ def get_utm():
         '0': {}
     }
 
+    if four_symbol_mode:
+        core = compile_super_transitions(TM(transitions=core))
+        transitions = core.transitions
+        utm = TM(transitions=transitions, start_state='2', empty_symbol='#')  # use '#' as the empty symbol to better simulate the behavior of two_symbol_mode that uses '0' as empty symbol
+        return utm
+
     # compile
     preprocess = compile_super_transitions(TM(transitions=preprocess))
     core = compile_super_transitions(TM(transitions=core))
     core = four_to_two_symbols(core)
     postprocess = compile_super_transitions(TM(transitions=postprocess))
     transitions = compose_transitions(compose_transitions(preprocess.transitions, core.transitions), postprocess.transitions)
-    #transitions = core.transitions
-    #utm = TM(transitions=transitions, start_state='2', empty_symbol='#')
     utm = TM(transitions=transitions, start_state='1')
     utm = remove_null_transitions(utm)
     return utm
@@ -365,14 +382,17 @@ def get_utm():
 
 if __name__ == "__main__":
     """
-    Construct UTM, saving it to an XML file
+    Run the UTM on an input
+    usage: python utm.py <input>
     """
-    from parser import save_to_xml
     import sys
 
-    filepath = 'examples/utm.xml'
-    if len(sys.argv) == 2:
-        filepath = sys.argv[1]
+    initial_tape = sys.argv[1].strip()
+    initial_tape = [c for c in initial_tape]
 
-    utm = get_utm()
-    save_to_xml(utm, filepath)
+    tm = get_utm(debug=False)
+    tm.set_tape(initial_tape)
+    tm.draw(max_tape_length=50)
+    tm.run()
+    tm.draw(max_tape_length=50)
+    print(''.join(tm.tape[tm.head_idx:]))

@@ -2,65 +2,13 @@ from tm import TM, Transition, RIGHT, LEFT
 from subroutine import SuperTransition
 from utils import get_state_id_map
 
-def n_to_2_symbols(tm):
-    """
-    Convert a Turing Machine that uses n symbols to one that uses only '0' and '1'.
-    Note that this works by by expressing each symbol as a unique fixed-length binary string,
-    so input tape symbols may need to be converted to the multiple-bit representation as well.
-    Args:
-        tm (TM): The original Turing Machine instance
-    
-    Returns:
-        TM: A new Turing Machine instance with all transitions using only '0' and '1'
-    """
-    # get the symbols used
-    symbols = set()
-    for state, transitions in tm.transitions.items():
-        for symbol in transitions.keys():
-            symbols.add(symbol)
-
-    # TODO: consider using a variable-length encoding scheme to handle skewed symbol distributions more efficiently
-    symbol_map = {}
-    # create a mapping of symbols to binary strings
-    fixed_length = len(bin(len(symbols)-1)[2:])  # length of binary string needed
-    for i, symbol in enumerate(symbols):
-        binary_str = bin(i)[2:].zfill(fixed_length)
-        symbol_map[symbol] = binary_str
-
-    new_transitions = {}
-
-    # convert each transition into a sequence of transitions
-    for state_from, transitions in tm.transitions.items():
-        new_transitions[state_from] = {}
-        # read the full symbol that we are looking at by reading fixed_length bits starting with the current one
-        for i in range(fixed_length):
-            # create a new state for each bit in the binary string
-            state_to = f"{state_from}_{i}"
-
-        for symbol, transition in transitions.items():
-            symbol_encoded = symbol_map[symbol]
-            # create a sequence of transitions to write the binary string
-            for i, bit in enumerate(binary_str):
-                if i == 0:
-                    new_transitions[state_from][bit] = Transition(transition.state_to, bit, transition.direction)
-                else:
-                    new_transitions[state_from][bit] = Transition(transition.state_to, bit, 'R')
-    
-    # TODO: finish
-    
-    return TM
-
-
+# TODO: could use a better suffix convention (or check) to ensure compiled state names are unique
+# right now, the compilation passes due generate unique state names, but this could be broken with the introduction of additional compilation passes
 def four_to_two_symbols(tm):
     """
     Hardcoded version of n_to_2_symbols for a Turing Machine that uses 4 symbols ('0', '1', '#', '@').
     This allows for certain optimizations.
     Convert a Turing Machine that uses 4 symbols ('0', '1', '#', '@') to one that uses only '0' and '1'.
-    Args:
-        tm (TM): The original Turing Machine instance
-    
-    Returns:
-        TM: A new Turing Machine instance with all transitions using only '0' and '1'
     """
     symbol_map = {
         '0': '01',
@@ -70,6 +18,11 @@ def four_to_two_symbols(tm):
     }
     new_transitions = {}
     for state_from, transitions in tm.transitions.items():
+
+        # skip halt state (no transitions)
+        if len(transitions) == 0:
+            new_transitions[state_from] = {}
+            continue
 
         # fork on first bit
         new_transitions[state_from] = {
@@ -127,11 +80,6 @@ def quintuple_to_quadruple(tm):
     """
     Convert a Turing Machine that uses quintuple transitions to one that uses quadruple transitions.
     Each transition in the resulting machine will either move or will write a symbol but not both.
-    Args:
-        tm (TM): The original Turing Machine instance
-    
-    Returns:
-        TM: A new Turing Machine instance with all transitions using quadruple transitions
     """
     new_transitions = {}
     for state_from, transitions in tm.transitions.items():
@@ -189,8 +137,6 @@ def standardize_simulation_target(tm):
             new_transitions[state_id][symbol] = transition
 
     tm = TM(transitions=new_transitions, start_state='1', tape=tm.tape, head_idx=tm.head_idx, empty_symbol=tm.empty_symbol)
-    #tm = remove_null_transitions(tm)
-    #print(tm)
     return tm
 
 def compose_transitions(t1, t2):
@@ -244,3 +190,48 @@ def remove_null_transitions(tm):
                 new_transitions[state_from][symbol] = transition
 
     return TM(transitions=new_transitions, start_state=tm.state, tape=tm.tape, head_idx=tm.head_idx, empty_symbol=tm.empty_symbol)
+
+
+def n_to_2_symbols(tm):
+    """
+    Convert a Turing Machine that uses n symbols to one that uses only '0' and '1'.
+    Note that this works by by expressing each symbol as a unique fixed-length binary string,
+    so input tape symbols may need to be converted to the multiple-bit representation as well.
+    """
+    raise NotImplementedError
+    # get the symbols used
+    symbols = set()
+    for state, transitions in tm.transitions.items():
+        for symbol in transitions.keys():
+            symbols.add(symbol)
+
+    # TODO: consider using a variable-length encoding scheme to handle skewed symbol distributions more efficiently
+    symbol_map = {}
+    # create a mapping of symbols to binary strings
+    fixed_length = len(bin(len(symbols)-1)[2:])  # length of binary string needed
+    for i, symbol in enumerate(symbols):
+        binary_str = bin(i)[2:].zfill(fixed_length)
+        symbol_map[symbol] = binary_str
+
+    new_transitions = {}
+
+    # convert each transition into a sequence of transitions
+    for state_from, transitions in tm.transitions.items():
+        new_transitions[state_from] = {}
+        # read the full symbol that we are looking at by reading fixed_length bits starting with the current one
+        for i in range(fixed_length):
+            # create a new state for each bit in the binary string
+            state_to = f"{state_from}_{i}"
+
+        for symbol, transition in transitions.items():
+            symbol_encoded = symbol_map[symbol]
+            # create a sequence of transitions to write the binary string
+            for i, bit in enumerate(binary_str):
+                if i == 0:
+                    new_transitions[state_from][bit] = Transition(transition.state_to, bit, transition.direction)
+                else:
+                    new_transitions[state_from][bit] = Transition(transition.state_to, bit, 'R')
+    
+    # TODO: finish
+    
+    return TM

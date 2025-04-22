@@ -1,150 +1,150 @@
 <?xml version="1.0" ?>
 <TuringMachine>
     <States>
-        <State_2>
-            <x>260.7329348229404</x>
-            <y>543.709665919836</y>
+        <State_0>
+            <x>427.8928912992735</x>
+            <y>147.34792640660604</y>
             <finalstate>false</finalstate>
             <startstate>false</startstate>
-        </State_2>
+        </State_0>
         <State_1>
-            <x>383.1946452583417</x>
-            <y>570.3792215993681</y>
+            <x>190.37203269447716</x>
+            <y>189.1145513983286</y>
             <finalstate>false</finalstate>
             <startstate>true</startstate>
         </State_1>
+        <State_2>
+            <x>299.08551624694564</x>
+            <y>567.2666464155731</y>
+            <finalstate>false</finalstate>
+            <startstate>false</startstate>
+        </State_2>
         <State_3>
-            <x>457.8126537006891</x>
-            <y>475.3780611766249</y>
+            <x>444.2953644586958</x>
+            <y>150.4836677542051</y>
             <finalstate>false</finalstate>
             <startstate>false</startstate>
         </State_3>
         <State_4>
-            <x>506.985341493803</x>
-            <y>492.4622916545892</y>
+            <x>173.15166032643478</x>
+            <y>374.02377073108556</y>
             <finalstate>false</finalstate>
             <startstate>false</startstate>
         </State_4>
         <State_5>
-            <x>210.1940698277162</x>
-            <y>342.44710752807106</y>
+            <x>200.94160662389797</x>
+            <y>452.77679518367364</y>
             <finalstate>false</finalstate>
             <startstate>false</startstate>
         </State_5>
         <State_6>
-            <x>291.73171836552723</x>
-            <y>587.6388345465563</y>
+            <x>209.11050144657034</x>
+            <y>201.67660687631047</y>
             <finalstate>false</finalstate>
             <startstate>false</startstate>
         </State_6>
         <State_7>
-            <x>196.69774158054742</x>
-            <y>317.7822439262975</y>
+            <x>519.8556741289381</x>
+            <y>561.1159979265693</y>
             <finalstate>false</finalstate>
             <startstate>false</startstate>
         </State_7>
-        <State_8>
-            <x>368.3423897140815</x>
-            <y>336.495906163057</y>
-            <finalstate>false</finalstate>
-            <startstate>false</startstate>
-        </State_8>
     </States>
     <Transitions>
         <Transition_0>
             <fromstate>1</fromstate>
-            <tostate>8</tostate>
+            <tostate>7</tostate>
             <oldchar>0</oldchar>
             <newchar>0</newchar>
             <direction>2</direction>
         </Transition_0>
         <Transition_1>
             <fromstate>1</fromstate>
-            <tostate>3</tostate>
+            <tostate>2</tostate>
             <oldchar>1</oldchar>
             <newchar>0</newchar>
             <direction>2</direction>
         </Transition_1>
         <Transition_2>
-            <fromstate>3</fromstate>
-            <tostate>4</tostate>
+            <fromstate>2</fromstate>
+            <tostate>3</tostate>
             <oldchar>0</oldchar>
             <newchar>0</newchar>
             <direction>2</direction>
         </Transition_2>
         <Transition_3>
-            <fromstate>3</fromstate>
-            <tostate>5</tostate>
+            <fromstate>2</fromstate>
+            <tostate>4</tostate>
             <oldchar>1</oldchar>
             <newchar>0</newchar>
             <direction>2</direction>
         </Transition_3>
         <Transition_4>
-            <fromstate>4</fromstate>
-            <tostate>6</tostate>
+            <fromstate>3</fromstate>
+            <tostate>5</tostate>
             <oldchar>0</oldchar>
             <newchar>1</newchar>
             <direction>1</direction>
         </Transition_4>
         <Transition_5>
-            <fromstate>4</fromstate>
-            <tostate>3</tostate>
+            <fromstate>3</fromstate>
+            <tostate>2</tostate>
             <oldchar>1</oldchar>
             <newchar>1</newchar>
             <direction>2</direction>
         </Transition_5>
         <Transition_6>
-            <fromstate>5</fromstate>
-            <tostate>4</tostate>
+            <fromstate>4</fromstate>
+            <tostate>3</tostate>
             <oldchar>0</oldchar>
             <newchar>1</newchar>
             <direction>2</direction>
         </Transition_6>
         <Transition_7>
-            <fromstate>5</fromstate>
-            <tostate>5</tostate>
+            <fromstate>4</fromstate>
+            <tostate>4</tostate>
             <oldchar>1</oldchar>
             <newchar>1</newchar>
             <direction>2</direction>
         </Transition_7>
         <Transition_8>
-            <fromstate>6</fromstate>
-            <tostate>7</tostate>
+            <fromstate>5</fromstate>
+            <tostate>6</tostate>
             <oldchar>0</oldchar>
             <newchar>0</newchar>
             <direction>1</direction>
         </Transition_8>
         <Transition_9>
-            <fromstate>6</fromstate>
-            <tostate>7</tostate>
+            <fromstate>5</fromstate>
+            <tostate>6</tostate>
             <oldchar>1</oldchar>
             <newchar>1</newchar>
             <direction>1</direction>
         </Transition_9>
         <Transition_10>
-            <fromstate>7</fromstate>
-            <tostate>8</tostate>
+            <fromstate>6</fromstate>
+            <tostate>7</tostate>
             <oldchar>0</oldchar>
             <newchar>0</newchar>
             <direction>2</direction>
         </Transition_10>
         <Transition_11>
-            <fromstate>7</fromstate>
-            <tostate>6</tostate>
+            <fromstate>6</fromstate>
+            <tostate>5</tostate>
             <oldchar>1</oldchar>
             <newchar>1</newchar>
             <direction>1</direction>
         </Transition_11>
         <Transition_12>
-            <fromstate>8</fromstate>
-            <tostate>2</tostate>
+            <fromstate>7</fromstate>
+            <tostate>0</tostate>
             <oldchar>0</oldchar>
             <newchar>0</newchar>
             <direction>2</direction>
         </Transition_12>
         <Transition_13>
-            <fromstate>8</fromstate>
-            <tostate>6</tostate>
+            <fromstate>7</fromstate>
+            <tostate>5</tostate>
             <oldchar>1</oldchar>
             <newchar>1</newchar>
             <direction>1</direction>

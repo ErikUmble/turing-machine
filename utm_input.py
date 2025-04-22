@@ -3,6 +3,10 @@ from parser import load_from_xml
 import sys
 
 if __name__ == "__main__":
+    """
+    Construct a UTM input tape from a Turing Machine XML file and an initial tape.
+    Usage: python utm_input.py <machine xml filepath> <initial tape>
+    """
     if len(sys.argv) != 3:
         print("Usage: python utm_input.py <machine xml filepath> <initial tape>")
         sys.exit(1)

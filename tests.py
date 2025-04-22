@@ -155,7 +155,7 @@ def test_construct_utm_input():
     tape = ['1', '0', '1']
     tm = TM(transitions=transitions, start_state='1', tape=tape, head_idx=0, empty_symbol='0')
     utm_input = construct_utm_input(tm)
-    assert ''.join(utm_input) == "1111101101111011110110101011010111011101101110101"
+    assert ''.join(utm_input) == "111011011101111011011101011010101"
 
 def test_simple_utm_input():
     target = load_from_xml("examples/simple2_tm.xml")
@@ -163,56 +163,46 @@ def test_simple_utm_input():
     print(''.join(construct_utm_input(target)))
 
 def test_utm():
-    target = load_from_xml("examples/simple_tm.xml")
+    # verify that the in-memory UTM works as a UTM
+    target = load_from_xml("examples/add_tm.xml")
     target.set_tape(['1', '1', '1', '0', '1', '1'])  # 2 + 1
-    #print(target)
     utm_input = construct_utm_input(target)
     utm = get_utm()
-    save_to_xml(utm, "examples/utm.xml")
-    utm = load_from_xml("examples/utm.xml")
     utm.set_tape(utm_input)   
-    #print(utm)
-    print(''.join(utm.tape))
-    utm.draw(max_tape_length=70)
     utm.run()
-    utm.draw(max_tape_length=70)
-    print(''.join(utm.tape))
-    assert "11110" in ''.join(utm.tape)
 
-def test_utm2():
+    assert "1111" == (''.join(utm.tape)).strip('0')
+
+def test_utm_file():
+    # verify that the saved UTM file produces a TM that works as a UTM
     target = load_from_xml("examples/shift_copy_tm.xml")
     target.set_tape(['1', '1', '1'])
-    #print(target)
     utm_input = construct_utm_input(target)
-    utm = get_utm()
-    #save_to_xml(utm, "examples/utm.xml")
-    utm = load_from_xml("examples/utm.xml")
+    utm = load_from_xml("utm.xml")
     utm.set_tape(utm_input)   
-    #print(utm)
-    print(''.join(utm.tape))
-    utm.draw(max_tape_length=70)
     utm.run()
-    utm.draw(max_tape_length=70)
-    print(''.join(utm.tape))
-    #assert "11110" in ''.join(utm.tape)
+    assert "1110111" == (''.join(utm.tape)).strip('0')
 
 
 def test_compile_four_to_two_symbols():
     transitions = {
+        '0': {},
         '1': {
             '1': MoveUntilRepeat('2', '0', 4, RIGHT),
         },
-        '2': {}
+        '2': {
+            '0': Transition('0', '#', RIGHT)
+        }
     }
     
     tm = TM(transitions=transitions, start_state='1', tape=['1', '1', '0', '1', '1', '1', '0', '1', '1', '1', '0', '1', '1', '1', '0', '1', '1', '1', '0', '1'], head_idx=0, empty_symbol='0')
     tm = compile_super_transitions(tm)
-    print(tm)
     tm = four_to_two_symbols(tm)
     tm.draw()
-    print(tm)
     tm.run()
     tm.draw()
+    assert '11011101110111001101' == ''.join(tm.tape)
+    assert tm.head_idx == 16
 
 def test_remove_null_transitions():
     transitions = {
@@ -231,17 +221,18 @@ def test_remove_null_transitions():
 
 
 if __name__ == "__main__":
-    #test_tm_methods()
-    #test_draw()
-    #test_load_xml()
-    #test_save_to_xml()
-    #test_two_to_four_symbol_expansion2()
-    #test_four_to_two_symbol_expansion()
-    #test_quintuple_to_quadruple()
-    #test_move_until()
-    #test_construct_utm_input()
-    test_utm2()
-    #test_compile_four_to_two_symbols()
-    #test_remove_null_transitions()
-    #test_simple_utm_input()
+    test_tm_methods()
+    test_draw()
+    test_load_xml()
+    test_save_to_xml()
+    test_two_to_four_symbol_expansion2()
+    test_four_to_two_symbol_expansion()
+    test_quintuple_to_quadruple()
+    test_move_until()
+    test_construct_utm_input()
+    test_utm()
+    test_utm_file()
+    test_compile_four_to_two_symbols()
+    test_remove_null_transitions()
+    test_simple_utm_input()
     print("All tests passed!")

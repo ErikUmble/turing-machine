@@ -1,3 +1,8 @@
+# TODO: a better abstraction would be subroutines via TMs
+# these could still be generated dynamically, like the super transitions
+# but would support composing multiple TMs more naturally
+# I used super transitions as the fastest way to get a working UTM for my course project
+
 from tm import TM, Transition, RIGHT, LEFT
 from parser import load_from_xml
 import random
@@ -28,7 +33,7 @@ class TwoToFourSymbolExpansion(SuperTransition):
     def assemble(self):
         # we already have this subroutine developed as an XML file
         # that considers '1' to be the start state and '0' to be the end state
-        tm = load_from_xml("examples/two_to_four_symbol_expansion.xml")
+        tm = load_from_xml("subroutines/two_to_four_symbol_expansion.xml")
 
         # add prefix to all internal states and move transitions to the '0' (end) state to go to the return state
         new_transitions = {}
@@ -61,7 +66,7 @@ class FourToTwoSymbolDecode(SuperTransition):
     def assemble(self):
         # we already have this subroutine developed as an XML file
         # that considers '1' to be the start state and '0' to be the end state
-        tm = load_from_xml("examples/four_to_two_symbol_decode.xml")
+        tm = load_from_xml("subroutines/four_to_two_symbol_decode.xml")
 
         # add prefix to all internal states and move transitions to the '0' (end) state to go to the return state
         new_transitions = {}
@@ -177,18 +182,3 @@ class MoveFixed(SuperTransition):
         
         return transitions, self.prefix + '1'
     
-
-class SwapPointerUntil(SuperTransition):
-    """
-    Swaps the current '@' symbol in the specified direction until swapping it with the target symbol.
-    """
-    # maybe would be better to just swap between '0' and '@'
-    pass
-
-
-def shift_right(end='00', next_state='0', prefix='shr_'):
-    """
-    Returns a transitions map that shifts the tape to the right by one cell
-    and returns to the leftmost '1'
-    """
-    pass
