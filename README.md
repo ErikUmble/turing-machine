@@ -3,7 +3,7 @@
 This repository contains an implementation of a Universal Turing Machine (UTM), along with Python utilities for working with and transforming Turing Machines. A UTM is a Turing Machine that takes as input a description of another Turing Machine and simulates that Turing Machine. The existance of a UTM is important in computability theory and underpins the programmable nature of nearly all computer implementations.
 
 ## Overview
-As a project in my Computability & Logic class, my goal was to create a UTM that can run on [this Turing Machine Simulator](https://github.com/ErikUmble/turing-machine/blob/main/TuringMachine4.zip). To achieve this goal quickly, without spending many hours debugging Turing Machines (TMs) in the GUI simulator, I developed the toolset in this repository which enable designing TMs in a high-level representation and testing parts of the algorithm modularly. This repository provides:
+As a project in my Computability & Logic class, my goal was to create a UTM that can run on [this Turing Machine Simulator](https://github.com/Bram-Hub/OwenTMS). To achieve this goal quickly, without spending many hours debugging Turing Machines (TMs) in the GUI simulator, I developed the toolset in this repository which enable designing TMs in a high-level representation and testing parts of the algorithm modularly. This repository provides:
 
 - A core Turing Machine (`TM`) class that supports arbitrary symbols and states
 - An XML parser for loading and storing Turing Machines for use in the GUI simulator and in Python
@@ -81,7 +81,7 @@ One key utility of this repository is the ability to transform a Turing Machine 
 ## Usage
 You can run the UTM in the GUI simulator, or via the CLI programs provided in this repository.
 ### GUI
-Unzip [TuringMachine4.zip](https://github.com/ErikUmble/turing-machine/blob/main/TuringMachine4.zip) and run the `TuringMachine4.jar` file.
+Unzip [TuringMachine4.zip](https://github.com/Bram-Hub/OwenTMS) and run the `TuringMachine4.jar` file.
 
 Click File -> Open -> select `utm.xml` from this repository
 
