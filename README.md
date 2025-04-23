@@ -81,7 +81,7 @@ One key utility of this repository is the ability to transform a Turing Machine 
 ## Usage
 You can run the UTM in the GUI simulator, or via the CLI programs provided in this repository.
 ### GUI
-Unzip [TuringMachine4.zip](https://github.com/Bram-Hub/OwenTMS) and run the `TuringMachine4.jar` file.
+Download [TuringMachine Simulator files](https://github.com/Bram-Hub/OwenTMS) and run the `TuringMachine4.jar` file.
 
 Click File -> Open -> select `utm.xml` from this repository
 
